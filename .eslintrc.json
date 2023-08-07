@@ -18,6 +18,7 @@
   ],
   "rules": {
     "@typescript-eslint/no-explicit-any": "off",
+    "no-unsafe-optional-chaining": "off",
     "indent": [
       "error",
       2

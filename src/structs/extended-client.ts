@@ -3,6 +3,7 @@ import {
   ApplicationCommandDataResolvable,
   BitFieldResolvable,
   Client,
+  ClientEvents,
   Collection,
   GatewayIntentsString,
   IntentsBitField,
@@ -16,6 +17,10 @@ import {
   ComponentsModal,
   ComponentsSelect,
 } from "./types/command";
+import { EventType } from "./types/event";
+
+const fileCondition = (fileName: string) =>
+  fileName.endsWith(".ts") || fileName.endsWith(".js");
 
 export class ExtendedClient extends Client {
   public commands: Collection<string, CommandType> = new Collection();
@@ -43,6 +48,7 @@ export class ExtendedClient extends Client {
 
   public start() {
     this.registerModules();
+    this.registerEvents();
     this.login(env.BOT_TOKEN);
   }
 
@@ -63,8 +69,6 @@ export class ExtendedClient extends Client {
   private registerModules() {
     const slashCommands: Array<ApplicationCommandDataResolvable> = [];
     const commandsPath = path.join(__dirname, "..", "commands");
-    const fileCondition = (fileName: string) =>
-      fileName.endsWith(".ts") || fileName.endsWith(".js");
 
     fs.readdirSync(commandsPath).forEach((local) => {
       fs.readdirSync(commandsPath + `/${local}/`)
@@ -81,13 +85,35 @@ export class ExtendedClient extends Client {
 
             if (buttons)
               buttons.forEach((run, key) => this.buttons.set(key, run));
+
             if (selects)
               selects.forEach((run, key) => this.selects.set(key, run));
+
             if (modals) modals.forEach((run, key) => this.modals.set(key, run));
           }
         });
     });
 
     this.on("ready", () => this.registerCommands(slashCommands));
+  }
+
+  private registerEvents() {
+    const eventsPath = path.join(__dirname, "..", "events");
+
+    fs.readdirSync(eventsPath).forEach((local) => {
+      fs.readdirSync(`${eventsPath}/${local}`)
+        .filter(fileCondition)
+        .forEach(async (fileName) => {
+          const { name, once, run }: EventType<keyof ClientEvents> = (
+            await import(`../events/${local}/${fileName}`)
+          )?.default;
+
+          try {
+            if (name) once ? this.once(name, run) : this.on(name, run);
+          } catch (error) {
+            console.log(`An error occurred on event: ${name} \n${error}`.red);
+          }
+        });
+    });
   }
 }
