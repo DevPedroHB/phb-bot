@@ -1,7 +1,10 @@
 kind: pipeline
 name: phb-bot
 
-# Definir o passo de build do projeto
+environment:
+  BOT_TOKEN:
+    from_secret: BOT_TOKEN
+
 steps:
   - name: build
     image: node:16
@@ -9,7 +12,6 @@ steps:
       - npm install
       - npm run build
 
-  # Definir o passo de deploy do bot
   - name: deploy
     image: node:16
     commands:
