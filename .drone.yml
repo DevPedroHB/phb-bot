@@ -1,27 +1,23 @@
 ---
 kind: pipeline
 type: docker
-name: default
-
-platform:
-  os: linux
-  arch: amd64
+name: php-bot
 
 steps:
-  - name: build
-    image: node:16
-    environment:
-      BOT_TOKEN:
-        from_secret: BOT_TOKEN
-    commands:
-      - npm install
-      - npm run build
+- name: build
+  image: node:18
+  environment:
+    BOT_TOKEN:
+      from_secret: bot_token
+  commands:
+  - npm install
+  - npm run build
 
-  - name: deploy
-    image: node:16
-    environment:
-      BOT_TOKEN:
-        from_secret: BOT_TOKEN
-    commands:
-      - npm install -g pm2
-      - pm2 start build/index.js --name "phb-bot"
+- name: deploy
+  image: node:18
+  environment:
+    BOT_TOKEN:
+      from_secret: bot_token
+  commands:
+  - npm install -g pm2
+  - pm2 start build/index.js --name "phb-bot"
