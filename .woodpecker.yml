@@ -1,0 +1,13 @@
+steps:
+  build:
+    image: node:18
+    secrets: [bot_token]
+    commands:
+      - npm install
+      - npm run build
+  deploy:
+    image: node:18
+    secrets: [bot_token]
+    commands:
+      - npm install -g pm2
+      - pm2 start build/index.js --name "phb-bot"
